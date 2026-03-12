@@ -468,6 +468,59 @@ button {
   font-size: 0.85rem;
 }
 
+/* Social sharing buttons */
+.share-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-light);
+}
+
+.share-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.share-btn {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.2s, transform 0.15s;
+  color: var(--text-primary);
+}
+
+.share-btn:hover {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: scale(1.15);
+}
+
+/* Highlighted card for deep-linked activities */
+.activity-highlighted {
+  outline: 3px solid var(--secondary);
+  box-shadow: 0 0 0 4px rgba(255, 111, 0, 0.15), 0 8px 15px rgba(0, 0, 0, 0.1) !important;
+  animation: highlight-pulse 1.5s ease-in-out;
+}
+
+@keyframes highlight-pulse {
+  0% { outline-color: var(--secondary); }
+  50% { outline-color: var(--secondary-light); }
+  100% { outline-color: var(--secondary); }
+}
+
 footer {
   text-align: center;
   margin-top: 20px;

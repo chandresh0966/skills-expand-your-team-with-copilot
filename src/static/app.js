@@ -470,12 +470,82 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
+
+    // Deep-link: highlight activity if specified in URL
+    const params = new URLSearchParams(window.location.search);
+    const linkedActivity = params.get("activity");
+    if (linkedActivity) {
+      highlightActivity(linkedActivity);
+    }
+  }
+
+  // Build a shareable URL for an activity
+  function createShareUrl(activityName) {
+    const base = window.location.origin + window.location.pathname;
+    return `${base}?activity=${encodeURIComponent(activityName)}`;
+  }
+
+  // Open a social sharing link for an activity
+  function shareActivity(platform, name, formattedSchedule) {
+    const url = createShareUrl(name);
+    const text = `Check out "${name}" at Mergington High School! 📅 ${formattedSchedule}`;
+
+    let shareUrl;
+    if (platform === "twitter") {
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+      window.open(shareUrl, "_blank", "noopener,noreferrer");
+    } else if (platform === "whatsapp") {
+      shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
+      window.open(shareUrl, "_blank", "noopener,noreferrer");
+    } else if (platform === "email") {
+      shareUrl = `mailto:?subject=${encodeURIComponent(`Join me: ${name}`)}&body=${encodeURIComponent(text + "\n\n" + url)}`;
+      window.location.href = shareUrl;
+    } else if (platform === "copy") {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+          showMessage("Link copied to clipboard!", "success");
+        }).catch(() => {
+          copyFallback(url);
+        });
+      } else {
+        copyFallback(url);
+      }
+    }
+  }
+
+  // Fallback copy using a temporary textarea (works on HTTP and older browsers)
+  function copyFallback(text) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      showMessage("Link copied to clipboard!", "success");
+    } catch (err) {
+      showMessage("Could not copy link. Please copy it manually: " + text, "error");
+    }
+    document.body.removeChild(textarea);
+  }
+
+  // Scroll to and highlight an activity card by name
+  function highlightActivity(activityName) {
+    const cards = activitiesList.querySelectorAll(".activity-card");
+    cards.forEach((card) => {
+      if (card.dataset.activityName === activityName) {
+        card.classList.add("activity-highlighted");
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
   }
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
+    activityCard.dataset.activityName = name;
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -569,6 +639,13 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-buttons">
+        <span class="share-label">Share:</span>
+        <button class="share-btn share-twitter" title="Share on X (Twitter)" aria-label="Share on X (Twitter)">𝕏</button>
+        <button class="share-btn share-whatsapp" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
+        <button class="share-btn share-email" title="Share via Email" aria-label="Share via Email">📧</button>
+        <button class="share-btn share-copy" title="Copy link" aria-label="Copy link to clipboard">🔗</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +663,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for share buttons
+    activityCard.querySelector(".share-twitter").addEventListener("click", () => {
+      shareActivity("twitter", name, formattedSchedule);
+    });
+    activityCard.querySelector(".share-whatsapp").addEventListener("click", () => {
+      shareActivity("whatsapp", name, formattedSchedule);
+    });
+    activityCard.querySelector(".share-email").addEventListener("click", () => {
+      shareActivity("email", name, formattedSchedule);
+    });
+    activityCard.querySelector(".share-copy").addEventListener("click", () => {
+      shareActivity("copy", name, formattedSchedule);
+    });
 
     activitiesList.appendChild(activityCard);
   }
